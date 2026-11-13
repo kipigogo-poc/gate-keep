@@ -19,6 +19,9 @@ export class AppConfigService {
   get paymongoWebhookSecret(): string | undefined {
     return this.config.get('PAYMONGO_WEBHOOK_SECRET', { infer: true });
   }
+  get firebaseProjectId(): string | undefined {
+    return this.config.get('FIREBASE_PROJECT_ID', { infer: true });
+  }
   get redis(): { url: string | undefined; token: string | undefined } {
     return {
       url: this.config.get('UPSTASH_REDIS_REST_URL', { infer: true }),

@@ -5,17 +5,20 @@ import { z } from 'zod';
  * if anything is missing or malformed. Secrets are optional in dev/test only.
  */
 const secret = z.string().min(1);
+/** Blank lines in .env (`KEY=`) mean "not set", not "invalid". */
+const optional = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((v) => (v === '' ? undefined : v), schema.optional());
 
 export const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().int().positive().default(8080),
     CORS_ORIGIN: z.string().url().default('http://localhost:5173'),
-    UPSTASH_REDIS_REST_URL: z.string().url().optional(),
-    UPSTASH_REDIS_REST_TOKEN: secret.optional(),
-    PAYMONGO_SECRET_KEY: secret.optional(),
-    PAYMONGO_WEBHOOK_SECRET: secret.optional(),
-    FIREBASE_PROJECT_ID: secret.optional(),
+    UPSTASH_REDIS_REST_URL: optional(z.string().url()),
+    UPSTASH_REDIS_REST_TOKEN: optional(secret),
+    PAYMONGO_SECRET_KEY: optional(secret),
+    PAYMONGO_WEBHOOK_SECRET: optional(secret),
+    FIREBASE_PROJECT_ID: optional(secret),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV !== 'production') return;

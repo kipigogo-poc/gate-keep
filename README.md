@@ -30,7 +30,7 @@ npm test
 |-------|--------------------------------------------|---------|
 | TC-01 | Scanned codes older than 15 s rejected     | pending |
 | TC-02 | Offline TOTP generation                    | pending |
-| TC-03 | 50 concurrent seat locks → 1×200, 49×409   | pending |
+| TC-03 | 50 concurrent seat locks → 1×200, 49×409   | passing |
 | TC-04 | Forged webhook HMAC → 401                  | pending |
 | TC-05 | Per-verified-phone ticket limit            | pending |
 | TC-06 | Google ↔ Discord account linking           | pending |
