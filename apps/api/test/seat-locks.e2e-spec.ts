@@ -5,11 +5,11 @@ import type { INestApplication } from '@nestjs/common';
 import type { Server } from 'node:http';
 import request from 'supertest';
 import type { Redis } from '@upstash/redis';
-import { SEAT_LOCK_TTL_SECONDS } from '@gatekeep/shared';
+import { MAX_SEAT_HOLDS_PER_EVENT, SEAT_LOCK_TTL_SECONDS } from '@gatekeep/shared';
 import { AppModule } from '../src/app.module.js';
 import { ID_TOKEN_VERIFIER, type IdTokenVerifier } from '../src/auth/auth.types.js';
 import { REDIS } from '../src/redis/redis.tokens.js';
-import { seatLockKey } from '../src/locks/lock-keys.js';
+import { seatLockKey, userHoldsKey } from '../src/locks/lock-keys.js';
 
 const hasRedis = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 
@@ -27,12 +27,16 @@ describe.skipIf(!hasRedis)('Seat micro-locks (live Upstash)', () => {
   let redis: Redis;
   const eventId = `test-${randomUUID()}`;
   const usedSeats: string[] = [];
+  const usedUids = new Set<string>();
 
   const lockUrl = (seatId: string): string => {
     usedSeats.push(seatId);
     return `/events/${eventId}/seats/${seatId}/lock`;
   };
-  const as = (uid: string): string => `Bearer test-${uid}`;
+  const as = (uid: string): string => {
+    usedUids.add(uid);
+    return `Bearer test-${uid}`;
+  };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
@@ -46,7 +50,10 @@ describe.skipIf(!hasRedis)('Seat micro-locks (live Upstash)', () => {
   });
 
   afterAll(async () => {
-    const keys = [...new Set(usedSeats)].map((s) => seatLockKey(eventId, s));
+    const keys = [
+      ...[...new Set(usedSeats)].map((s) => seatLockKey(eventId, s)),
+      ...[...usedUids].map((u) => userHoldsKey(eventId, u)),
+    ];
     if (keys.length) await redis.del(...keys);
     await app.close();
   });
@@ -101,5 +108,23 @@ describe.skipIf(!hasRedis)('Seat micro-locks (live Upstash)', () => {
   it('rejects ids that could break out of the key namespace with 400', async () => {
     await request(server).post(`/events/${eventId}/seats/A1:x/lock`).set('Authorization', as('alice')).expect(400);
     await request(server).post(`/events/${'x'.repeat(65)}/seats/A1/lock`).set('Authorization', as('alice')).expect(400);
+  });
+
+  it(`caps one account at ${MAX_SEAT_HOLDS_PER_EVENT} simultaneous holds (429), freed by release`, async () => {
+    const seats = Array.from({ length: MAX_SEAT_HOLDS_PER_EVENT + 1 }, (_, i) => `CAP${i}`);
+    for (const seat of seats.slice(0, MAX_SEAT_HOLDS_PER_EVENT)) {
+      await request(server).post(lockUrl(seat)).set('Authorization', as('hoarder')).expect(200);
+    }
+    const extra = seats[MAX_SEAT_HOLDS_PER_EVENT] as string;
+    await request(server).post(lockUrl(extra)).set('Authorization', as('hoarder')).expect(429);
+    // Re-clicking a seat already held is not a new hold.
+    await request(server).post(lockUrl('CAP0')).set('Authorization', as('hoarder')).expect(200);
+
+    await request(server).delete(lockUrl('CAP0')).set('Authorization', as('hoarder')).expect(204);
+    await request(server).post(lockUrl(extra)).set('Authorization', as('hoarder')).expect(200);
+  });
+
+  it('a seat rejected at the cap is still free for someone else', async () => {
+    await request(server).post(lockUrl('CAP0')).set('Authorization', as('someone-else')).expect(200);
   });
 });

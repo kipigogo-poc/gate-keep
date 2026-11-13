@@ -4,7 +4,8 @@ import { AuthModule } from './auth/auth.module.js';
 import { HealthModule } from './health/health.module.js';
 import { LocksModule } from './locks/locks.module.js';
 import { RedisModule } from './redis/redis.module.js';
+import { WebhooksModule } from './webhooks/webhooks.module.js';
 
-/** Feature modules (webhooks, tickets, scan) are added here as they land. */
-@Module({ imports: [AppConfigModule, RedisModule, AuthModule, HealthModule, LocksModule] })
+/** Feature modules (tickets, scan) are added here as they land. */
+@Module({ imports: [AppConfigModule, RedisModule, AuthModule, HealthModule, LocksModule, WebhooksModule] })
 export class AppModule {}

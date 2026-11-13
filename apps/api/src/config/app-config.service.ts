@@ -16,6 +16,10 @@ export class AppConfigService {
   get corsOrigin(): string {
     return this.config.get('CORS_ORIGIN', { infer: true });
   }
+  /** Live-mode keys start with sk_live_; anything else (including none) is test mode. */
+  get paymongoLivemode(): boolean {
+    return this.config.get('PAYMONGO_SECRET_KEY', { infer: true })?.startsWith('sk_live_') ?? false;
+  }
   get paymongoWebhookSecret(): string | undefined {
     return this.config.get('PAYMONGO_WEBHOOK_SECRET', { infer: true });
   }
