@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny. Only the Admin SDK (which bypasses rules) writes anything.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /tickets/{ticketId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.owner_uid;
+      allow write: if false;
+    }
+
+    match /events/{eventId} {
+      allow read: if resource.data.published == true;
+      allow write: if false;
+    }
+  }
+}

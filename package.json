@@ -1,0 +1,14 @@
+{
+  "name": "gate-keep",
+  "private": true,
+  "description": "GateKeep by MIAU Solutions — zero-scalper ticketing",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "build": "npm run build -w @gatekeep/shared && npm run build -w @gatekeep/api && npm run build -w @gatekeep/web",
+    "dev:web": "npm run dev -w @gatekeep/web",
+    "dev:api": "npm run start:dev -w @gatekeep/api",
+    "test": "npm test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": { "node": ">=22" }
+}
