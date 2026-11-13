@@ -1,1 +1,1 @@
-// Feature module — implemented in its own build step.
+export { GateScanner } from './GateScanner';

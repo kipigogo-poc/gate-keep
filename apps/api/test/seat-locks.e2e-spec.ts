@@ -17,7 +17,7 @@ const hasRedis = Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTA
 const fakeVerifier: IdTokenVerifier = {
   verify: async (token) => {
     if (!token.startsWith('test-')) throw new Error('bad token');
-    return { uid: token.slice('test-'.length) };
+    return { uid: token.slice('test-'.length), roles: [] };
   },
 };
 

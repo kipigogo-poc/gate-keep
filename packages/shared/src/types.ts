@@ -40,9 +40,9 @@ export interface TicketDoc {
 
 export type ScanVerdict = 'ADMIT' | 'REJECT_EXPIRED' | 'REJECT_INVALID' | 'REJECT_REUSED';
 
+/** Contents of the wallet QR: `GK1.<ticketId>.<6-digit code>`. */
 export interface ScanRequestDto {
-  readonly ticketId: string;
-  readonly code: string;
+  readonly payload: string;
 }
 
 export interface ScanResponseDto {
@@ -54,3 +54,6 @@ export interface ApiErrorDto {
   readonly statusCode: number;
   readonly message: string;
 }
+
+/** Firebase custom claim `gk_roles` values. */
+export type Role = 'door_staff' | 'organizer';

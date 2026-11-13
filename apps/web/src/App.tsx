@@ -1,20 +1,19 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { GrainOverlay } from '@/components/layout/GrainOverlay';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import { Hero } from '@/components/sections/Hero';
-import { Features } from '@/components/sections/Features';
+import { GatePage } from '@/pages/GatePage';
+import { HomePage } from '@/pages/HomePage';
+import { WalletPage } from '@/pages/WalletPage';
 
-/** Composition root — layout + sections only, no business logic. */
+/** Composition root — routes to pages only, no business logic. */
 export function App() {
   return (
-    <>
+    <BrowserRouter>
       <GrainOverlay />
-      <Navbar />
-      <main>
-        <Hero />
-        <Features />
-      </main>
-      <Footer />
-    </>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/wallet/:ticketId" element={<WalletPage />} />
+        <Route path="/gate" element={<GatePage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

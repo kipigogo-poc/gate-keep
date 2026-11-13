@@ -1,8 +1,9 @@
 import type { Request } from 'express';
-import type { Uid } from '@gatekeep/shared';
+import type { Role, Uid } from '@gatekeep/shared';
 
 export interface AuthenticatedUser {
   readonly uid: Uid;
+  readonly roles: readonly Role[];
 }
 
 export interface AuthenticatedRequest extends Request {
